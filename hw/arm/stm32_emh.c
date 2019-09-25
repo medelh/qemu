@@ -39,9 +39,8 @@ static void stm32_emh_init(MachineState *machine)
     memory_region_add_subregion(address_space_mem, 0, ram);
     //
 
-    sysctl = qdev_create(NULL, "realview_sysctl");
+    sysctl = qdev_create(NULL, "emh_sysctl");
     qdev_init_nofail(sysctl);
-    sysbus_mmio_map(SYS_BUS_DEVICE(sysctl), 0, 0x10000000);
 
 
     dev = sysbus_create_varargs("pl190", 0x10140000,
@@ -49,11 +48,8 @@ static void stm32_emh_init(MachineState *machine)
                                 qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_FIQ),
                                 NULL);
 
-    qemu_irq pic[32];
-    for (int n = 0; n < 32; n++) {
-         pic[n] = qdev_get_gpio_in(dev, n);
-     }
-    pl011_create(0x101f1000, pic[12], serial_hd(0));
+    qemu_irq pic =  qdev_get_gpio_in(dev, 0);;
+    pl011_create(0x101f1000, pic, serial_hd(0));
 
     versatile_binfo.ram_size = machine->ram_size;
     arm_load_kernel(cpu, machine, &versatile_binfo);
