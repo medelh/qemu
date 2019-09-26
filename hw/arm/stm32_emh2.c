@@ -10,9 +10,6 @@
 #include "hw/arm/boot.h"	//arm_load_kernel
 #include "exec/address-spaces.h" //get_system_memory
 
-#include "hw/intc/armv7m_nvic.h"
-#include "hw/loader.h" // reset rom
-#include "sysemu/reset.h"
 
 #include "hw/char/pl011.h"
 #include "sysemu/sysemu.h"
@@ -21,20 +18,22 @@ static struct arm_boot_info versatile_binfo;
 
 static void stm32_emh_init(MachineState *machine)
 {
-	DeviceState *nvic;
+	DeviceState * dev, *sysctl;
 
-	// create nvic object
-    nvic = qdev_create(NULL, "armv7m_nvic");
+    printf("!!!! %s\n",  machine->cpu_type);
+    printf("!!!! %s\n",  machine->kernel_filename);
+    printf("!!!! %s\n",  machine->kernel_cmdline);
+    printf("!!!! %s\n",  machine->initrd_filename);
+    printf("!!!! %ld\n", machine->ram_size);
 
+printf("create cpu\n");
     //create cpu
     Object *cpuobj = object_new(machine->cpu_type);
-    ARMCPU *cpu = ARM_CPU(cpuobj);
-    //set cpu env
-    cpu->env.nvic = nvic;
+printf("create cpu 1\n");
     object_property_set_bool(cpuobj, true, "realized", &error_fatal);
-
-    ((NVICState *)nvic)->cpu = cpu;
-    qdev_init_nofail(nvic);
+printf("create cpu 2\n");
+    ARMCPU *cpu = ARM_CPU(cpuobj);
+printf("create cpu 3\n");
 
 printf("create arm\n");
     //create ram
@@ -44,35 +43,23 @@ printf("create arm\n");
     memory_region_add_subregion(address_space_mem, 0, ram);
     //
 
-    /*
-    memory_region_init_alias(
-            flash_alias_mem,
-            NULL,
-            "stm32-flash-alias-mem",
-            address_space_mem,
-            0,
-            flash_size);
-    memory_region_add_subregion(address_space_mem, 0x08000000, flash_alias_mem);
-    */
-
 printf("create sysctl\n");
-//    sysctl = qdev_create(NULL, "emh_sysctl");
+    sysctl = qdev_create(NULL, "emh_sysctl");
+    qdev_init_nofail(sysctl);
 
 
 printf("create uart\n");
-/*    dev = sysbus_create_varargs("pl190", 0x10140000,
+    dev = sysbus_create_varargs("pl190", 0x10140000,
                                 qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ),
                                 qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_FIQ),
                                 NULL);
 
     qemu_irq pic =  qdev_get_gpio_in(dev, 0);;
     pl011_create(0x101f1000, pic, serial_hd(0));
-*/
+
 printf("start\n");
     versatile_binfo.ram_size = machine->ram_size;
     arm_load_kernel(cpu, machine, &versatile_binfo);
-    rom_check_and_register_reset();
-    qemu_devices_reset();
 
 }
 
