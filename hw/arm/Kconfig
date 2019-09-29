@@ -421,6 +421,12 @@ config MSF2
     select SSI
     select UNIMP
 
+config EMH_TEST
+    bool
+    select EMH3_TEST
+
+config EMH3_TEST
+    bool
 config ZAURUS
     bool
     select NAND

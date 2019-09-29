@@ -1161,10 +1161,14 @@ int rom_check_and_register_reset(void)
     Rom *rom;
     AddressSpace *as = NULL;
 
+    printf("rom_load_all #start\n");
     QTAILQ_FOREACH(rom, &roms, next) {
+    	 printf("rom_load_all #rom->fw_file: %s\n", rom->fw_file);
         if (rom->fw_file) {
             continue;
         }
+        printf("rom_load_all #rom->addr: %ld\n", rom->addr);
+        printf("rom_load_all #rom->mr: %p\n", rom->mr);
         if (!rom->mr) {
             if ((addr > rom->addr) && (as == rom->as)) {
                 fprintf(stderr, "rom: requested regions overlap "
@@ -1173,14 +1177,17 @@ int rom_check_and_register_reset(void)
                         rom->name, addr, rom->addr);
                 return -1;
             }
+
             addr  = rom->addr;
             addr += rom->romsize;
             as = rom->as;
+            printf("rom_load_all #rom->romsize: %ld\n", rom->romsize);
         }
         section = memory_region_find(rom->mr ? rom->mr : get_system_memory(),
                                      rom->addr, 1);
         rom->isrom = int128_nz(section.size) && memory_region_is_rom(section.mr);
         memory_region_unref(section.mr);
+        printf("rom_load_all #section->address_space: %s\n", section.mr->name);
     }
     qemu_register_reset(rom_reset, NULL);
     roms_loaded = 1;

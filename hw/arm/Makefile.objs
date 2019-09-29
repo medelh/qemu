@@ -52,4 +52,8 @@ obj-$(CONFIG_ARM_SMMUV3) += smmu-common.o smmuv3.o
 obj-$(CONFIG_FSL_IMX6UL) += fsl-imx6ul.o mcimx6ul-evk.o
 obj-$(CONFIG_NRF51_SOC) += nrf51_soc.o
 
-obj-y += stm32_emh.o
+
+obj-$(CONFIG_EMH_TEST) += stm32_emh.o
+obj-$(CONFIG_EMH_TEST) += stm32_emh2.o
+obj-$(CONFIG_EMH_TEST) += cortex_emh3.o
+obj-$(CONFIG_EMH3_TEST) += emh3-soc.o

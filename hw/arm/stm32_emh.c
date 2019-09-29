@@ -17,10 +17,25 @@
 #include "hw/char/pl011.h"
 #include "sysemu/sysemu.h"
 
-static struct arm_boot_info versatile_binfo;
+#include "elf.h"
+#include "migration/vmstate.h"
+
+#include "exec/cpu-common.h"
+
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
+#include "hw/arm/armv7m.h"
+
+
+static struct arm_boot_info boot_binfo;
 
 static void stm32_emh_init(MachineState *machine)
 {
+	int flash_size = 64;
+	int ram_size = 512;
 	DeviceState *nvic;
 
 	// create nvic object
@@ -36,51 +51,27 @@ static void stm32_emh_init(MachineState *machine)
     ((NVICState *)nvic)->cpu = cpu;
     qdev_init_nofail(nvic);
 
-printf("create arm\n");
-    //create ram
-    MemoryRegion *address_space_mem = get_system_memory();
-    MemoryRegion *ram = g_new(MemoryRegion, 1);
-    memory_region_allocate_system_memory(ram, NULL, "emh.ram", machine->ram_size);
-    memory_region_add_subregion(address_space_mem, 0, ram);
+    //--------------------- Memory ------------------------------------
+printf("create memory\n");
+    MemoryRegion *sysmem = get_system_memory();
+    MemoryRegion *sram  = g_new(MemoryRegion, 1);
+    MemoryRegion *flash = g_new(MemoryRegion, 1);
+    MemoryRegion *hack  = g_new(MemoryRegion, 1);
+
+    memory_region_init_ram(flash, NULL, "emh.flash", machine->ram_size, NULL);
+    memory_region_set_readonly(flash, true);
+    memory_region_add_subregion(sysmem, 0, flash);
+
+    boot_binfo.ram_size = machine->ram_size;
+    armv7m_load_kernel(cpu, machine->kernel_filename, machine->ram_size);
     //
-
-    /*
-    memory_region_init_alias(
-            flash_alias_mem,
-            NULL,
-            "stm32-flash-alias-mem",
-            address_space_mem,
-            0,
-            flash_size);
-    memory_region_add_subregion(address_space_mem, 0x08000000, flash_alias_mem);
-    */
-
-printf("create sysctl\n");
-//    sysctl = qdev_create(NULL, "emh_sysctl");
-
-
-printf("create uart\n");
-/*    dev = sysbus_create_varargs("pl190", 0x10140000,
-                                qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ),
-                                qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_FIQ),
-                                NULL);
-
-    qemu_irq pic =  qdev_get_gpio_in(dev, 0);;
-    pl011_create(0x101f1000, pic, serial_hd(0));
-*/
-printf("start\n");
-    versatile_binfo.ram_size = machine->ram_size;
-    arm_load_kernel(cpu, machine, &versatile_binfo);
-    rom_check_and_register_reset();
-    qemu_devices_reset();
-
 }
 
 static void stm32_emh_class_init(ObjectClass *oc, void *data) {
     MachineClass *mc = MACHINE_CLASS(oc);
     mc->desc = "STM32 emh";
     mc->init = stm32_emh_init;
-    mc->default_cpu_type = ARM_CPU_TYPE_NAME("cortex-m4");
+    mc->default_cpu_type = ARM_CPU_TYPE_NAME("cortex-m3");
 //    mc->default_cpu_type = ARM_CPU_TYPE_NAME("arm926");
 }
 

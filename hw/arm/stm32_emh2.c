@@ -14,35 +14,35 @@
 #include "hw/char/pl011.h"
 #include "sysemu/sysemu.h"
 
+#include "exec/cpu-common.h"
+#include "hw/loader.h"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
 static struct arm_boot_info versatile_binfo;
 
 static void stm32_emh_init(MachineState *machine)
 {
 	DeviceState * dev, *sysctl;
 
-    printf("!!!! %s\n",  machine->cpu_type);
-    printf("!!!! %s\n",  machine->kernel_filename);
-    printf("!!!! %s\n",  machine->kernel_cmdline);
-    printf("!!!! %s\n",  machine->initrd_filename);
-    printf("!!!! %ld\n", machine->ram_size);
-
 printf("create cpu\n");
     //create cpu
     Object *cpuobj = object_new(machine->cpu_type);
-printf("create cpu 1\n");
     object_property_set_bool(cpuobj, true, "realized", &error_fatal);
-printf("create cpu 2\n");
     ARMCPU *cpu = ARM_CPU(cpuobj);
-printf("create cpu 3\n");
 
-printf("create arm\n");
+printf("create ram\n");
     //create ram
+
     MemoryRegion *address_space_mem = get_system_memory();
     MemoryRegion *ram = g_new(MemoryRegion, 1);
     memory_region_allocate_system_memory(ram, NULL, "emh.ram", machine->ram_size);
     memory_region_add_subregion(address_space_mem, 0, ram);
-    //
 
+    //
+/*
 printf("create sysctl\n");
     sysctl = qdev_create(NULL, "emh_sysctl");
     qdev_init_nofail(sysctl);
@@ -56,10 +56,12 @@ printf("create uart\n");
 
     qemu_irq pic =  qdev_get_gpio_in(dev, 0);;
     pl011_create(0x101f1000, pic, serial_hd(0));
-
-printf("start\n");
+*/
+printf("load kernel\n");
     versatile_binfo.ram_size = machine->ram_size;
     arm_load_kernel(cpu, machine, &versatile_binfo);
+
+printf("finish\n");
 
 }
 
@@ -67,12 +69,12 @@ static void stm32_emh_class_init(ObjectClass *oc, void *data) {
     MachineClass *mc = MACHINE_CLASS(oc);
     mc->desc = "STM32 emh";
     mc->init = stm32_emh_init;
-    mc->default_cpu_type = ARM_CPU_TYPE_NAME("cortex-m4");
-//    mc->default_cpu_type = ARM_CPU_TYPE_NAME("arm926");
+//    mc->default_cpu_type = ARM_CPU_TYPE_NAME("cortex-m4");
+    mc->default_cpu_type = ARM_CPU_TYPE_NAME("arm926");
 }
 
 static const TypeInfo stm32_emh_type = {
-    .name = MACHINE_TYPE_NAME("stm32_emh"),
+    .name = MACHINE_TYPE_NAME("stm32_emh2"),
     .parent = TYPE_MACHINE,
     .class_init = stm32_emh_class_init,
 };

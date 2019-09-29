@@ -28,12 +28,14 @@
 /* Get the byte address of the real memory for a bitband access.  */
 static inline hwaddr bitband_addr(BitBandState *s, hwaddr offset)
 {
+	printf("!!!!!, bitband_addr: %ld\n", offset);
     return s->base | (offset & 0x1ffffff) >> 5;
 }
 
 static MemTxResult bitband_read(void *opaque, hwaddr offset,
                                 uint64_t *data, unsigned size, MemTxAttrs attrs)
 {
+	printf("!!!!!, bitband_read: %ld\n", offset);
     BitBandState *s = opaque;
     uint8_t buf[4];
     MemTxResult res;

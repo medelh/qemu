@@ -537,6 +537,7 @@ static void do_armv7m_nvic_set_pending(void *opaque, int irq, bool secure,
     VecInfo *vec;
     bool targets_secure;
 
+    printf("!!! irq: %d\n", irq);
     assert(irq > ARMV7M_EXCP_RESET && irq < s->num_irq);
     assert(!secure || banked);
 
@@ -974,6 +975,7 @@ static void nvic_nmi_trigger(void *opaque, int n, int level)
 
 static uint32_t nvic_readl(NVICState *s, uint32_t offset, MemTxAttrs attrs)
 {
+	printf("!!!!!, nvic_readl: %d\n", offset);
     ARMCPU *cpu = s->cpu;
     uint32_t val;
 
@@ -1469,6 +1471,7 @@ static uint32_t nvic_readl(NVICState *s, uint32_t offset, MemTxAttrs attrs)
 static void nvic_writel(NVICState *s, uint32_t offset, uint32_t value,
                         MemTxAttrs attrs)
 {
+	printf("!!!!!, nvic_writel: %d\n", offset);
     ARMCPU *cpu = s->cpu;
 
     switch (offset) {

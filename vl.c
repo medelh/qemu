@@ -1540,6 +1540,14 @@ void qemu_exit_preconfig_request(void)
  */
 void qemu_system_reset(ShutdownCause reason)
 {
+    int fbyte = 0;
+    for (uint64_t add = 0 ; add< 10; add++) {
+    	cpu_physical_memory_read(add,&fbyte, 4);
+    	if (fbyte != 0) {
+    		printf("1 #### %lx: %x\n", add, fbyte);
+    	}
+    }
+
     MachineClass *mc;
 
     mc = current_machine ? MACHINE_GET_CLASS(current_machine) : NULL;
@@ -1555,6 +1563,14 @@ void qemu_system_reset(ShutdownCause reason)
         qapi_event_send_reset(shutdown_caused_by_guest(reason), reason);
     }
     cpu_synchronize_all_post_reset();
+    for (uint64_t add = 0 ; add< 10; add+=4) {
+    	cpu_physical_memory_read(add,&fbyte, 4);
+    	if (fbyte != 0) {
+    		printf("22 #### %lx: %x\n", add, fbyte);
+    	}
+    }
+    printf("---------\n");
+
 }
 
 /*
